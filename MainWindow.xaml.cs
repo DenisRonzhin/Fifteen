@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading;
 
 namespace Fifteen
 {
@@ -20,11 +21,18 @@ namespace Fifteen
     /// </summary>
     public partial class MainWindow : Window
     {
-        int[,] arrayGame = { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 }, {13, 14, 15, 0}};
-       
+        int[,] arrayGame = { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 }, { 13, 14, 15, 0 } };
+
         private struct buttonPosition
         {
             public Button buttonNumber;
+            public int row;
+            public int col;
+        }
+
+        private struct str
+        {
+            public int value;
             public int row;
             public int col;
         }
@@ -58,34 +66,8 @@ namespace Fifteen
             Addbtn(3, 1, Button14);
             Addbtn(3, 2, Button15);
             Addbtn(3, 3, Button16);
-      
+
         }
-
-
-        private void Check()
-        {
-            bool i = false;
-
-            foreach (var item in buttonList)
-            {
-                if (item.buttonNumber.Name != "Button16" && "Button" + item.buttonNumber.Content.ToString() == item.buttonNumber.Name) i = true;
-                else if (item.buttonNumber.Name != "Button16")
-                {
-
-                   i = false;
-                   break;
-
-                }   
-            }
-            if (i)
-            {
-                MessageBox.Show("У тебя получилось !!!");
-                ShuffleArray();
-                ShowButtonTitle();
-            }
-        }
-
-
         private void Addbtn(int row, int col, Button btn)
         {
             buttonPosition btnPosition = new buttonPosition();
@@ -96,21 +78,83 @@ namespace Fifteen
         }
 
 
-        //Перемешаем массив
-        private void ShuffleArray()
+        private void ChangeAll(int cicleCount)
         {
-            Random rnd = new Random();
+            for (int i = 1; i<=cicleCount; i++)
+            {
+                ChangePlaces();
+
+            }
+        
+        }
+
+        //Поменяем местами с пустой ячейкой случайным образом.
+        private void ChangePlaces()
+        {
+             
+            List<str> findeList = new List<str>{};
+
             for (int row = 0; row < 4; row++)
             {
                 for (int col = 0; col < 4; col++)
                 {
-                    int tmpCol = rnd.Next(col + 1);
-                    int tmpRow = rnd.Next(row + 1);
-                    var tmp = arrayGame[row, col];
-                    arrayGame[row, col] = arrayGame[tmpRow, tmpCol];
-                    arrayGame[tmpRow, tmpCol] = tmp;
+                    if (arrayGame[row, col] == 0)
+
+                    {
+
+                        if (col - 1 >= 0) 
+                        {
+                            str str_ = new str();
+                            str_.row = row;
+                            str_.col = col - 1;
+                            str_.value = arrayGame[row, col - 1];
+                            findeList.Add(str_);
+                        }
+
+                        if (col + 1 <= 3)
+                        {
+                            str str_ = new str();
+                            str_.row = row;
+                            str_.col = col + 1;
+                            str_.value = arrayGame[row, col + 1];
+                            findeList.Add(str_);
+                        }
+
+                        if (row - 1 >= 0)
+                        {
+                            str str_ = new str();
+                            str_.row = row-1;
+                            str_.col = col;
+                            str_.value = arrayGame[row-1, col];
+                            findeList.Add(str_);
+                        }
+
+                        if (row + 1 <= 3)
+                        {
+                            str str_ = new str();
+                            str_.row = row + 1;
+                            str_.col = col;
+                            str_.value = arrayGame[row + 1, col];
+                            findeList.Add(str_);
+                        }
+
+                        //Определяем какой из соседних соседних элементов смешать с пустышкой
+                        Random rnd = new Random();
+                        int element = rnd.Next(1, findeList.Count + 1);
+
+                        //Поменяем местами с пустышкой
+
+                        int tmpRow = findeList[element - 1].row;
+                        int tmpCol = findeList[element - 1].col;
+
+                        var tmp = arrayGame[row, col];
+                        arrayGame[row, col] = arrayGame[tmpRow,tmpCol];
+                        arrayGame[tmpRow, tmpCol] = tmp;
+                    }
+
                 }
             }
+
         }
 
         //Отоборазим заголовки кнопок, заголовки берем из массива arrayGame
@@ -143,9 +187,7 @@ namespace Fifteen
         //Событие нажатие на кнопку
         private void Button_click(object sender, EventArgs e)
         {
-
             var r = ((Button)sender).Content;
-
             var cell = buttonList.Find(x => x.buttonNumber == ((Button)sender));
 
             int currentRow = cell.row;
@@ -187,13 +229,36 @@ namespace Fifteen
 
         }
 
+        private void Check()
+        {
+            bool i = false;
+            foreach (var item in buttonList)
+            {
+                if (item.buttonNumber.Name != "Button16" && "Button" + item.buttonNumber.Content.ToString() == item.buttonNumber.Name) i = true;
+                else if (item.buttonNumber.Name != "Button16")
+                {
+                    i = false;
+                    break;
+                }
+            }
+            if (i)
+            {
+                MessageBox.Show("У тебя получилось !!!");
+                StartGame();
+            }
+        }
+
+        private void StartGame()
+        {
+            ChangeAll(500);
+            ShowButtonTitle();
+        }
 
         public MainWindow()
         {
             InitializeComponent();
             InitialGame();
-            ShuffleArray();
-            ShowButtonTitle();
+            StartGame();
         }
     }
 }
