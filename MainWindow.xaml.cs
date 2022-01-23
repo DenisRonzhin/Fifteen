@@ -150,9 +150,17 @@ namespace Fifteen
                         var tmp = arrayGame[row, col];
                         arrayGame[row, col] = arrayGame[tmpRow,tmpCol];
                         arrayGame[tmpRow, tmpCol] = tmp;
+
+                        findeList.Clear();
+
+                        break;
+
                     }
 
                 }
+
+                if (findeList.Count > 0) { break; }
+
             }
 
         }
